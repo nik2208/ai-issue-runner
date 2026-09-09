@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-issue-runner"
+version = "0.1.0"
+description = "Decentralized AI Issue Runner with Guarded Agentic Loop, multi-provider OAuth, and pluggable harnesses."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Nicola", email = "developer@local" }
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.7.0",
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "httpx>=0.27.0",
+    "pyyaml>=6.0.1",
+    "aiofiles>=23.2.0",
+    "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+google = [
+    "google-antigravity>=0.1.16",
+    "google-genai>=1.0.0",
+]
+
+[project.scripts]
+ai-runner = "ai_runner.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ai_runner"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

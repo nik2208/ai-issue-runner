@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Issue Runner — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+    <!-- Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+                    ⚡
+                </div>
+                <span class="font-bold text-lg tracking-tight">AI Issue Runner</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Decentralized</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 text-xs text-slate-400">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Daemon Active</span>
+                </div>
+                <span class="text-xs bg-slate-800 px-3 py-1 rounded-md text-slate-300 font-mono" id="daemon-endpoint">127.0.0.1:4242</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <!-- Top Row: Provider Onboarding & Status -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Provider Auth Card -->
+            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+                <h2 class="text-base font-semibold text-slate-200 mb-4 flex items-center justify-between">
+                    <span>AI Providers & Authentication</span>
+                    <button onclick="refreshAuthStatus()" class="text-xs text-indigo-400 hover:text-indigo-300 font-normal">Refresh</button>
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="providers-container">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+
+                <!-- API Key Quick Input Form -->
+                <div class="mt-6 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-end gap-3">
+                    <div class="w-full sm:w-1/3">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Provider</label>
+                        <select id="api-provider-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="google">Google (Gemini API Key)</option>
+                            <option value="anthropic">Anthropic (Claude API Key)</option>
+                            <option value="openai">OpenAI (GPT / Codex Key)</option>
+                            <option value="ollama">Ollama (Host URL)</option>
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-2/3">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">API Key / Token / URL</label>
+                        <div class="flex gap-2">
+                            <input type="password" id="api-key-input" placeholder="sk-..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <button onclick="saveApiKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Runner Specs Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-semibold text-slate-200 mb-4">Runner Configuration</h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Default Harness:</span>
+                            <span class="text-slate-200 font-mono font-medium">Native (ReAct)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Guard Policy:</span>
+                            <span class="text-indigo-400 font-medium">Strict Verification</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Max Iterations:</span>
+                            <span class="text-slate-200 font-mono">15</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-400">Webhook Status:</span>
+                            <span class="text-emerald-400 font-medium">Listening on /api/webhook</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-3 bg-slate-950 rounded-lg border border-slate-800/80 text-xs text-slate-400">
+                    💡 <strong class="text-slate-300">Tip:</strong> You can export tokens for GitHub Secrets using <code class="text-indigo-300">ai-runner auth export</code>.
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace: Plan Submitter & Live Execution Monitor -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: Plan Submitter -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col">
+                <h2 class="text-base font-semibold text-slate-200 mb-3">Submit Structured Plan</h2>
+                <p class="text-xs text-slate-400 mb-4">Input a structured task with Acceptance Criteria to test the Guarded Loop.</p>
+                
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Task Title</label>
+                        <input type="text" id="plan-title" value="Fix JWT token expiration bug" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Summary / Objective</label>
+                        <textarea id="plan-summary" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">Ensure refresh tokens extend sessions correctly and unit tests pass.</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Acceptance Criterion Command</label>
+                        <input type="text" id="plan-command" value="pytest tests/ -k auth" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="pt-2">
+                        <button onclick="submitPlan()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2">
+                            <span>▶ Start Guarded Agentic Loop</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Real-Time Terminal & Execution Monitor -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+                        <h2 class="text-base font-semibold text-slate-200">Execution Monitor</h2>
+                    </div>
+                    <button onclick="clearTerminal()" class="text-xs text-slate-400 hover:text-slate-200">Clear</button>
+                </div>
+
+                <!-- Terminal Display -->
+                <div id="terminal" class="bg-slate-950 border border-slate-800/80 rounded-lg p-4 font-mono text-xs text-slate-300 h-96 overflow-y-auto terminal-scroll space-y-1">
+                    <div class="text-slate-500"># Connected to AI Runner log stream...</div>
+                    <div class="text-emerald-400"># Ready to receive plans.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // WebSocket Connection for Live Logs
+        let ws;
+        function connectWS() {
+            const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+            const wsUrl = `${proto}//${window.location.host}/ws/logs`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === "log") {
+                    appendTerminal(data.message);
+                } else if (data.type === "job_status") {
+                    appendTerminal(`[STATUS] Job ${data.job_id} -> ${data.status.toUpperCase()}`);
+                }
+            };
+
+            ws.onclose = () => {
+                setTimeout(connectWS, 2000);
+            };
+        }
+
+        function appendTerminal(msg) {
+            const term = document.getElementById("terminal");
+            const div = document.createElement("div");
+            div.textContent = msg;
+            if (msg.includes("❌") || msg.includes("Error")) div.className = "text-rose-400";
+            else if (msg.includes("✅") || msg.includes("🎉")) div.className = "text-emerald-400 font-semibold";
+            else if (msg.includes("Tool:")) div.className = "text-amber-300";
+            else if (msg.includes("Agent:")) div.className = "text-indigo-300";
+            else div.className = "text-slate-300";
+
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function clearTerminal() {
+            document.getElementById("terminal").innerHTML = '<div class="text-slate-500"># Terminal cleared.</div>';
+        }
+
+        // Fetch & Render Provider Auth Status
+        async function refreshAuthStatus() {
+            try {
+                const res = await fetch('/auth/status');
+                const data = await res.json();
+                const container = document.getElementById('providers-container');
+                container.innerHTML = '';
+
+                for (const [provider, status] of Object.entries(data)) {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800/60 border border-slate-700/60 rounded-lg p-3.5 flex flex-col justify-between";
+                    
+                    const isAuth = status.authenticated;
+                    const authBadge = isAuth 
+                        ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium">Ready</span>' 
+                        : '<span class="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-400">Not Configured</span>';
+
+                    let actionHtml = '';
+                    if (provider === 'google') {
+                        actionHtml = isAuth 
+                            ? `<div class="text-xs text-slate-400 truncate mt-2">Connected: ${status.user_email || 'OAuth'}</div>`
+                            : `<button onclick="startGoogleOAuth()" class="mt-2 text-xs bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 py-1 px-2.5 rounded transition">Connect Google</button>`;
+                    } else {
+                        actionHtml = `<div class="text-xs text-slate-400 mt-2">Mode: ${status.auth_mode.toUpperCase()}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-sm capitalize text-slate-200">${provider}</span>
+                            ${authBadge}
+                        </div>
+                        ${actionHtml}
+                    `;
+                    container.appendChild(card);
+                }
+            } catch (err) {
+                console.error("Failed to load auth status", err);
+            }
+        }
+
+        async function startGoogleOAuth() {
+            try {
+                const res = await fetch('/auth/login/google');
+                const data = await res.json();
+                if (data.auth_url) {
+                    window.open(data.auth_url, '_blank', 'width=600,height=700');
+                }
+            } catch (e) {
+                alert("OAuth error: " + e.message);
+            }
+        }
+
+        async function saveApiKey() {
+            const provider = document.getElementById("api-provider-select").value;
+            const apiKey = document.getElementById("api-key-input").value;
+            if (!apiKey) return;
+
+            await fetch('/auth/apikey', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ provider, api_key: apiKey })
+            });
+            document.getElementById("api-key-input").value = "";
+            refreshAuthStatus();
+        }
+
+        async function submitPlan() {
+            const title = document.getElementById("plan-title").value;
+            const summary = document.getElementById("plan-summary").value;
+            const command = document.getElementById("plan-command").value;
+
+            const plan = {
+                task_id: "UI-" + Math.floor(Math.random() * 1000),
+                title: title,
+                summary: summary,
+                phases: [{ id: "p1", title: "Execution", description: summary }],
+                acceptance_criteria: [
+                    { id: "test_ac", description: "Verify criteria command", command: command, expected_exit_code: 0 }
+                ],
+                max_iterations: 15,
+                harness: "native"
+            };
+
+            appendTerminal(`[SUBMIT] Submitting plan: ${title}`);
+            const res = await fetch('/api/jobs', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(plan)
+            });
+            const job = await res.json();
+            appendTerminal(`[QUEUED] Job created: ${job.id}`);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            connectWS();
+            refreshAuthStatus();
+        });
+    </script>
+</body>
+</html>
