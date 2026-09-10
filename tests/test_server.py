@@ -84,3 +84,28 @@ async def test_server_webhook_github_issue(app):
         data = resp.json()
         assert data["status"] == "enqueued"
         assert "job_id" in data
+
+@pytest.mark.asyncio
+async def test_server_webhook_gitea_issue(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        payload = {
+            "action": "opened",
+            "issue": {
+                "number": 105,
+                "title": "Gitea bug report: auth token refresh",
+                "body": "Token refresh fails on Gitea.",
+                "labels": [{"name": "ai-run"}]
+            },
+            "repository": {"full_name": "gitea-user/my-repo"}
+        }
+
+        resp = await client.post(
+            "/api/webhook/gitea",
+            json=payload,
+            headers={"X-Gitea-Event": "issues"}
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "enqueued"
+        assert data["task_id"] == "GH-105"

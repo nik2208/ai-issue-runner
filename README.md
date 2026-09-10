@@ -1,6 +1,6 @@
 # AI Issue Runner (Decentralized)
 
-An autonomous, decentralized AI runner inspired by PleaseAI (`shunt` & `work-please`) and self-hosted CI/CD runners, designed to solve GitHub/GitLab issues and execute complex engineering tasks under a strict **Guarded Agentic Loop**.
+An autonomous, decentralized AI runner inspired by PleaseAI (`shunt` & `work-please`) and self-hosted CI/CD runners, designed to solve GitHub, GitLab, and Gitea/Forgejo issues and execute complex engineering tasks under a strict **Guarded Agentic Loop**.
 
 ---
 
@@ -68,7 +68,7 @@ docker run -d \
   ghcr.io/nik2208/ai-issue-runner:latest
 ```
 
-Configure a GitHub Webhook pointing to `http://your-server:4242/api/webhook/github` (Event: `issues`, `issue_comment`).
+Configure a Webhook in GitHub, Gitea, or Forgejo pointing to `http://your-server:4242/api/webhook/gitea` (or `/api/webhook/github`) for Events: `issues`, `issue_comment`.
 
 ---
 
