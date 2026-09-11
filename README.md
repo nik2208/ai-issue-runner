@@ -19,7 +19,8 @@ An autonomous, decentralized AI runner inspired by PleaseAI (`shunt` & `work-ple
 3. **Pluggable Agent Harnesses**:
    - **`NativeHarness`**: Built-in, high-performance ReAct tool loop (`read_file`, `write_file`, `replace_file_content`, `run_bash`, `grep_search`, `finish_task`) with token history compaction.
    - **`AgyHarness`**: Official adapter for Google Antigravity SDK (`google-antigravity`).
-   - **`OpenCodeHarness` & `PiHarness`**: Subprocess bridge adapters for OpenCode and Pi-agent.
+   - **`PiHarness`**: First-class adapter for Mario Zechner's **Pi Coding Agent** (`@earendil-works/pi-coding-agent`), preinstalled in Docker with iterative self-correction and automated error diagnostics re-injection.
+   - **`OpenCodeHarness`**: Subprocess bridge adapter for OpenCode.
 
 4. **Dual Deployment Topologies**:
    - **Ephemeral Mode (GitHub Actions)**: Container runs directly on GitHub-hosted runners (`ubuntu-latest`) billed by execution minute. Zero VPS hosting cost!
@@ -86,10 +87,11 @@ ai-runner login google
 # or for API key:
 ai-runner login anthropic
 
-# 4. Run a plan with Acceptance Criteria
+# 4. Run a plan with Acceptance Criteria (Native or Pi Agent)
 ai-runner run --plan example_plan.yaml --harness native
+ai-runner run --plan example_plan.yaml --harness pi
 
-# 5. Run full automated test suite (29 tests)
+# 5. Run full automated test suite (34 tests)
 pytest tests/ -v
 ```
 

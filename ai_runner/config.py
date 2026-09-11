@@ -38,6 +38,7 @@ def load_config(data_dir: Optional[Path] = None) -> RunnerConfig:
 
 def save_config(config: RunnerConfig, data_dir: Optional[Path] = None) -> None:
     cfg_file = get_config_path(data_dir)
+    cfg_file.parent.mkdir(parents=True, exist_ok=True)
     with open(cfg_file, "w", encoding="utf-8") as f:
         yaml.safe_dump(config.model_dump(), f)
 
@@ -61,6 +62,7 @@ def load_credentials(data_dir: Optional[Path] = None) -> Dict[str, Any]:
 
 def save_credentials(creds: Dict[str, Any], data_dir: Optional[Path] = None) -> None:
     cred_file = get_credentials_path(data_dir)
+    cred_file.parent.mkdir(parents=True, exist_ok=True)
     with open(cred_file, "w", encoding="utf-8") as f:
         json.dump(creds, f, indent=2)
     # Ensure secure permissions

@@ -131,6 +131,15 @@
                         <label class="block text-xs font-medium text-slate-400 mb-1">Acceptance Criterion Command</label>
                         <input type="text" id="plan-command" value="pytest tests/ -k auth" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Agent Harness</label>
+                        <select id="plan-harness" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="native">⚡ Native ReAct (Built-in)</option>
+                            <option value="pi" selected>🥧 Pi Agent (@earendil-works/pi)</option>
+                            <option value="agy">🛸 Google Antigravity (agy)</option>
+                            <option value="opencode">💻 OpenCode</option>
+                        </select>
+                    </div>
                     <div class="pt-2">
                         <button onclick="submitPlan()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-emerald-600/20 flex items-center justify-center space-x-2">
                             <span>▶ Start Guarded Agentic Loop</span>
@@ -268,6 +277,8 @@
             const title = document.getElementById("plan-title").value;
             const summary = document.getElementById("plan-summary").value;
             const command = document.getElementById("plan-command").value;
+            const harnessSelect = document.getElementById("plan-harness");
+            const harness = harnessSelect ? harnessSelect.value : "native";
 
             const plan = {
                 task_id: "UI-" + Math.floor(Math.random() * 1000),
@@ -278,7 +289,7 @@
                     { id: "test_ac", description: "Verify criteria command", command: command, expected_exit_code: 0 }
                 ],
                 max_iterations: 15,
-                harness: "native"
+                harness: harness
             };
 
             appendTerminal(`[SUBMIT] Submitting plan: ${title}`);
